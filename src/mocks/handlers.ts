@@ -8,9 +8,10 @@ import {
   mockPayments789,
 } from "./mockPaymentsData";
 import { API_URL } from "../constants";
+import type { Payment, PaymentSearchResponse } from "../types/payment";
 
 // Create a map of all payments for easy lookup
-const allPayments: any[] = [
+const allPayments: Payment[] = [
   ...mockPayments134,
   ...mockPayments456,
   ...mockPayments789,
@@ -20,7 +21,7 @@ const allPayments: any[] = [
 ];
 
 // Create a map for payment ID lookup
-const paymentIdMap: { [key: string]: any } = {};
+const paymentIdMap: Record<string, Payment> = {};
 allPayments.forEach(payment => {
   paymentIdMap[payment.id] = payment;
 });
@@ -54,7 +55,7 @@ export const handlers = [
       );
     }
 
-    let filteredPayments: any[] = [];
+    let filteredPayments: Payment[] = [];
 
     // Filter payments based on search criteria and filters
     filteredPayments = allPayments.filter((pay) => {
@@ -81,7 +82,7 @@ export const handlers = [
     const start = (page - 1) * pageSize;
     const paginatedPayments = filteredPayments.slice(start, start + pageSize);
 
-    const responsePayload: any = {
+    const responsePayload: PaymentSearchResponse = {
       payments: paginatedPayments,
       total,
       page,

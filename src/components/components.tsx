@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import type { PaymentStatus } from "../types/payment";
 
 export const Container = styled.div`
   width: 100%;
@@ -123,7 +124,7 @@ export const TableWrapper = styled.div`
 
 export const Table = styled.table`
   min-width: 100%;
-  text-sm: 14px;
+  font-size: 0.875rem;
   text-align: left;
 `;
 
@@ -147,7 +148,7 @@ export const TableCell = styled.td`
   color: #4b5563;
 `;
 
-export const StatusBadge = styled.span<{ status: string }>`
+export const StatusBadge = styled.span<{ status: PaymentStatus }>`
   padding: 0.25rem 0.75rem;
   border-radius: 0.375rem;
   font-size: 0.75rem;
