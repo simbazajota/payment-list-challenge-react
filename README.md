@@ -1,3 +1,67 @@
+# Payment List: My Solution
+
+A React + TypeScript page for searching, filtering and paging through payments. All 8 steps are done and all 11 tests pass. The original challenge brief is [further down](#original-challenge-brief).
+
+## Running it
+
+Needs Node 24 (see `.nvmrc`).
+
+```bash
+npm install
+npm run dev     # dev server with the MSW mock API
+npm test        # run all tests
+npm run lint    # lint
+npm run build   # production build
+```
+
+## Structure
+
+```
+src/
+  api/payments.ts          fetchPayments, the only place that talks to the API
+  hooks/usePayments.ts     React Query hook: caching, loading and error state
+  components/
+    PaymentsPage.tsx       owns filter and page state, picks what to render
+    PaymentFilters.tsx     search box, currency dropdown, search and clear buttons
+    PaymentsTable.tsx      the table
+    Pagination.tsx         previous / next and current page
+  utils/                   errors.ts (friendly messages), format.ts (dates, amounts)
+  types/payment.ts         Payment, query and response types
+  constants/index.ts       API URL, currencies, page size, initial query
+```
+
+Data flows one way: filters update `query` state in `PaymentsPage`, which feeds `usePayments`, which calls `fetchPayments`. The result is passed down to the table and pagination.
+
+## Key decisions
+
+- **Typed text vs applied search.** `searchInput` is what's in the box, `query` is what's sent. Typing doesn't fire requests, only submitting does. The currency dropdown applies immediately because it's a single deliberate choice.
+- **React Query.** Filters and page are in the query key, so each combination is cached and changes refetch automatically. `keepPreviousData` keeps the current page visible while the next one loads, so the table doesn't flash empty.
+- **Any filter change resets to page 1**, so you can't land on a page that doesn't exist for the new results.
+- **Derived state.** `hasActiveFilters` is computed on render, not stored, so it can't drift out of sync. State updates use the `setQuery(current => ...)` form so quick consecutive changes can't overwrite each other.
+- **Errors.** `getErrorMessage` maps 404, 500 and everything else to i18n messages, never raw errors. The error replaces the table so old results can't be mistaken for new ones.
+- **Accessibility.** `role="search"` on the form, `aria-label` on inputs, `role="alert"` on errors, `aria-live` on the page number, `scope="col"` on headers.
+- **All text comes from `I18N`.**
+
+## Other changes
+
+- Fixed invalid CSS in `components.tsx` (`text-sm: 14px` became `font-size: 0.875rem`).
+- Replaced `any` with proper types in the mock handlers.
+- Made some existing tests stricter without weakening any, e.g. the currency test now checks every row is USD, since matching the text "USD" also hit the dropdown option.
+- `CURRENCIES` has 8 entries (JPY and CZK on top of the 6 in the brief), so the dropdown shows all 8.
+
+## Trade-offs and next steps
+
+- **Amounts use `toFixed(2)`**, which is wrong for currencies like JPY with no decimals. In production I'd have the API send minor units as integers and format with `Intl.NumberFormat`.
+- **Filters aren't in the URL**, so a refresh loses them and filtered views can't be shared.
+- **No loading indicator between pages.** `keepPreviousData` avoids the flash, but nothing shows that a load is in progress (`isPlaceholderData` would fix this).
+- **Dates show in the user's local time.** A payments dashboard may be clearer in UTC or the merchant's timezone.
+- **The mock API returns 404 for an empty search**, where a 200 with an empty list would be cleaner. An empty state exists in case that changes.
+- **With more time:** error boundary, Sentry and React Query's global `onError` for observability, GitHub Actions CI (lint, types, tests), API URL from an env variable, unit tests for the utils, a network-failure test and a Playwright end-to-end test.
+
+---
+
+<a id="original-challenge-brief"></a>
+
 # 💳 Payment Search Challenge
 
 Welcome to the Payment Search Challenge! This is a frontend coding challenge designed to assess your ability to implement a payment search feature using modern web technologies.
